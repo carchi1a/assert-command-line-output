@@ -53,38 +53,38 @@ runs:
         if [ ! -z "${{ inputs.contains }}" ]; then
             echo 🕵️ Check if output file contains expression \"${{ inputs.contains }}\"
             if grep -q "${{ inputs.contains }}" output.txt; then
-                result=$(echo "PASSED")
+                result="PASSED"
             else
-                result=$(echo "FAILED")
+                result="FAILED"
             fi
-        elif [ ! -z ${{ inputs.specific_line }} ]; then
+        elif [ ! -z "${{ inputs.specific_line }}" ]; then
             echo 🕵️ Comparing files specific line
             if diff --strip-trailing-cr -a <(head -n ${{ inputs.specific_line }} output.txt | strip-ansi ) <(head -n ${{ inputs.specific_line }} ${{ inputs.assert_file_path }} | strip-ansi ) >/dev/null; then
-                result=$(echo "PASSED")
+                result="PASSED"
             else
-                result=$(echo "FAILED")
+                result="FAILED"
             fi
         else
             echo 🕵️ Comparing files
             if diff --strip-trailing-cr -a <(cat output.txt | strip-ansi) <(cat ${{ inputs.assert_file_path }} | strip-ansi) >/dev/null; then
-                result=$(echo "PASSED")
+                result="PASSED"
             else
-                result=$(echo "FAILED")
+                result="FAILED"
             fi
         fi
-        echo "{result}={$(echo $result)}" >> $GITHUB_OUTPUT
+        echo "result=$result" >> "$GITHUB_OUTPUT"
       shell: bash
 
     - name: GOT vs EXPECTED
       run: |
         echo ▶️ GOT: ${{ steps.assert.outputs.result }}
         echo ▶️ EXPECTED: ${{ inputs.expected_result }}
-        if [ ${{ steps.assert.outputs.result }} != ${{ inputs.expected_result }} ]; then
+        if [ "${{ steps.assert.outputs.result }}" != "${{ inputs.expected_result }}" ]; then
             echo 🆚 GOT != EXPECTED ❌
             if [ ! -z "${{ inputs.contains }}" ]; then
                 echo "Command output doesn't contain \"${{ inputs.contains }}\""
                 cat output.txt
-            elif [ ! -z ${{ inputs.specific_line }} ]; then
+            elif [ ! -z "${{ inputs.specific_line }}" ]; then
                 diff --strip-trailing-cr -a <(head -n ${{ inputs.specific_line }} output.txt | strip-ansi ) <(head -n ${{ inputs.specific_line }} ${{ inputs.assert_file_path }} | strip-ansi ) | cat -t
             else
                 diff --strip-trailing-cr -a <(cat output.txt | strip-ansi) <(cat ${{ inputs.assert_file_path }} | strip-ansi) | cat -t
